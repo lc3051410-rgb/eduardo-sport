@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Eduardo SPORT 💪</title>
+
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#b30000">
+
+<style>
+body{
+  font-family: Arial, sans-serif;
+  background: linear-gradient(135deg,#0a3cff,#b30000);
+  color:white;
+  text-align:center;
+  padding:20px;
+}
+.card{
+  background:#0f172a;
+  border-radius:16px;
+  padding:16px;
+  margin:12px auto;
+  max-width:420px;
+}
+button{
+  padding:12px 18px;
+  margin:6px;
+  border:none;
+  border-radius:12px;
+  font-size:16px;
+}
+.ok{background:#22c55e;color:#000;}
+.water{background:#38bdf8;color:#000;}
+.reset{background:#ef4444;color:white;}
+.calendar{
+  display:grid;
+  grid-template-columns: repeat(7,1fr);
+  gap:6px;
+}
+.day{
+  padding:8px 0;
+  border-radius:8px;
+  background:#334155;
+}
+.done{background:#22c55e;color:#000;}
+.fail{background:#ef4444;}
+</style>
+</head>
+
+<body>
+
+<h1>🔥 Eduardo SPORT</h1>
+
+<div class="card">
+  <h2 id="racha">Racha: 0 días</h2>
+  <button class="ok" onclick="marcar('ejercicio')">🏋️ Ejercicio</button>
+  <button class="water" onclick="marcar('agua')">💧 Tomé agua</button>
+</div>
+
+<div class="card">
+  <div id="estadoHoy">Nada marcado</div>
+</div>
+
+<div class="card">
+  <h3>📅 Calendario</h3>
+  <div class="calendar" id="calendar"></div>
+</div>
+
+<script>
+const hoy=new Date();
+const hoyStr=hoy.toDateString();
+
+function getData(){
+ return JSON.parse(localStorage.getItem("eduardoSport"))||{racha:0,ultimoDia:"",dias:{}};
+}
+function save(d){localStorage.setItem("eduardoSport",JSON.stringify(d));}
+
+function marcar(t){
+ let d=getData();
+ d.dias[hoyStr]=d.dias[hoyStr]||{ejercicio:false,agua:false};
+ if(d.dias[hoyStr][t]) return alert("Ya marcado 😎");
+ d.dias[hoyStr][t]=true;
+ if(d.dias[hoyStr].ejercicio && d.dias[hoyStr].agua){
+  let a=new Date(); a.setDate(a.getDate()-1);
+  d.racha=(d.ultimoDia===a.toDateString())?d.racha+1:1;
+  d.ultimoDia=hoyStr;
+ }
+ save(d); actualizar();
+}
+
+function actualizar(){
+ let d=getData();
+ document.getElementById("racha").innerText="Racha: "+d.racha+" días";
+ let e="Nada marcado";
+ if(d.dias[hoyStr]) e=`Ejercicio ${d.dias[hoyStr].ejercicio?"✅":"❌"} | Agua ${d.dias[hoyStr].agua?"✅":"❌"}`;
+ document.getElementById("estadoHoy").innerHTML=e;
+
+ const cal=document.getElementById("calendar");
+ cal.innerHTML="";
+ let y=hoy.getFullYear(), m=hoy.getMonth();
+ let days=new Date(y,m+1,0).getDate();
+ for(let i=1;i<=days;i++){
+  let ds=new Date(y,m,i).toDateString();
+  let div=document.createElement("div");
+  div.className="day";
+  div.innerText=i;
+  if(d.dias[ds]) div.classList.add(d.dias[ds].ejercicio&&d.dias[ds].agua?"done":"fail");
+  cal.appendChild(div);
+ }
+}
+actualizar();
+</script>
+
+<script>
+if("serviceWorker"in navigator){
+ navigator.serviceWorker.register("service-worker.js");
+}
+</script>
+
+</body>
+</html>
